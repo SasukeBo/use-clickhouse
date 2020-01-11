@@ -6,13 +6,13 @@
 
 > Load Data from CSV into Clickhouse with your own sample real or fake data(1 million rows+)
 
-- 连接数据库
+- Connect database
 
 ```sh
 clickhouse-client --password *******
 ```
 
-- 创建表
+- Create table
 
 ```SQL
 CREATE TABLE IF NOT EXISTS sales
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS sales
 ENGINE = Memory
 ```
 
-- 导入样本数据
+- Load data from csv into database
 
 [1 Million Sales Records](./1MillionSalesRecords.csv)
 
@@ -41,7 +41,7 @@ ENGINE = Memory
 clickhouse-client --query="INSERT INTO sales FORMAT CSV" < 1MillionSalesRecords.csv --password ******
 ```
 
-- 查询样本数据
+- Query data
 
 ```SQL
 SELECT * FROM sales LIMIT 100
@@ -132,15 +132,15 @@ go run connect_clickhouse.go
 
 > Provide Golang APIs to query data(Restful or GraphQL)
 
-- 启动服务
+- Start API server
 
 ```sh
 go run main.go
 ```
 
-- 测试 API
+- API docs
 
-浏览器打开 [localhost:8080/api](http://localhost:8080/api)
+Open [localhost:8080/api](http://localhost:8080/api) in browser.
 
 query
 
