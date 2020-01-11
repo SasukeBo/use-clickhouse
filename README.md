@@ -46,7 +46,9 @@ clickhouse-client --query="INSERT INTO sales FORMAT CSV" < 1MillionSalesRecords.
 ```SQL
 SELECT * FROM sales LIMIT 100
 ```
+
 Output
+
 ```
 #=> 100 rows in set. Elapsed: 0.005 sec. Processed 1.00 million rows, 99.30 MB (201.91 million rows/s., 20.05 GB/s.)
 ```
@@ -55,7 +57,9 @@ Output
 
 > Connect to Clickhouse; Use Golang Clickhouse Driver
 
-```golang
+[./connect_clickhouse.go](./connect_clickhouse.go)
+
+```go
 package main
 
 import (
@@ -118,4 +122,40 @@ func main() {
 	}
 }
 
+```
+
+```sh
+go run connect_clickhouse.go
+```
+
+#### Task 3
+
+> Provide Golang APIs to query data(Restful or GraphQL)
+
+- 启动服务
+
+```sh
+go run main.go
+```
+
+- 测试 API
+
+浏览器打开 [localhost:8080/api](http://localhost:8080/api)
+
+query
+
+```graphql
+query {
+  ping
+}
+```
+
+output
+
+```json
+{
+  "data": {
+    "ping": "pong"
+  }
+}
 ```
