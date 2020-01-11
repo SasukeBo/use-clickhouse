@@ -12,6 +12,6 @@ func Run() error {
 	r.GET("/api", controller.GraphQLHander())
 	r.POST("/api", controller.GraphQLHander())
 
-	err := r.Run(":8080")
+	err := r.Run(":4000")
 	return err
 }

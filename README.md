@@ -159,3 +159,58 @@ output
   }
 }
 ```
+
+#### Task 4
+
+> Any I/O or frontend to manipulate the data via your Golang APIs
+
+Web Approach project github link: [Bindo test](https://github.com/SasukeBo/bindo_test)
+
+Nginx Config:
+
+```nginx
+upstream backend {
+    server 127.0.0.1:4000;
+}
+
+upstream frontend {
+    server 127.0.0.1:8081;
+}
+
+server {
+    set $http_upgrade websocket;
+    set $connection_upgrade Upgrade;
+
+    listen 80;
+    server_name bindotest.com;
+    client_max_body_size 300M;
+
+    location ~ /api {
+        proxy_pass http://backend;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+    }
+
+    location ~ /sockjs-node {
+        proxy_pass http://frontend;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+
+        proxy_read_timeout 300s;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+    }
+
+    location / {
+        proxy_pass http://frontend;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+    }
+}
+```
