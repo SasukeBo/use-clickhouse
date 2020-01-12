@@ -214,3 +214,5 @@ server {
     }
 }
 ```
+
+then browser to http://localhost/simple_data
