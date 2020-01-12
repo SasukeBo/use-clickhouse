@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS sales
   item_type String,
   sales_channel FixedString(7),
   order_priority FixedString(1),
-  order_id FixedString(9),
+  order_id String,
   units_sold UInt16,
   unit_price Float32,
   unit_cost Float32,

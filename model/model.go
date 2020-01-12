@@ -37,6 +37,7 @@ func SimpleQuery(filters []interface{}, fields []interface{}, limit, offset int)
 		offset,
 	)
 
+	fmt.Println(sql)
 	rows, err := database.DB.Query(sql)
 	if err != nil {
 		return nil, err
@@ -125,7 +126,7 @@ func parseWhereField(filters []interface{}) string {
 		return ""
 	}
 
-	return fmt.Sprintf("WHERE %s ", strings.Join(conditions, " and "))
+	return fmt.Sprintf("WHERE %s ", strings.Join(conditions, " AND "))
 }
 
 func parseSelectField(fields []interface{}) string {
@@ -146,4 +147,49 @@ func parseSelectField(fields []interface{}) string {
 	}
 
 	return strings.Join(columns, ", ")
+}
+
+// AggregatedQuery _
+func AggregatedQuery(filters, havings []interface{}, groupBy, field string) (interface{}, error) {
+	whereField := parseWhereField(filters)
+	havingField := parseHavingField(havings)
+
+	sql := fmt.Sprintf(
+		`
+		SELECT
+			%s,
+			sum(%s) AS sum,
+			avg(%s) AS avg,
+			count() AS count
+		FROM sales
+		%s
+		GROUP BY %s
+		%s
+		`,
+		groupBy,
+		field,
+		field,
+		whereField,
+		groupBy,
+		havingField,
+	)
+
+	fmt.Println(sql)
+
+	return nil, nil
+}
+
+func parseHavingField(havings []interface{}) string {
+	conditions := []string{}
+
+	for _, item := range havings {
+		having := item.(map[string]interface{})
+		conditions = append(conditions, fmt.Sprintf("%s %s %v", having["field"], having["op"], having["value"]))
+	}
+
+	if len(conditions) == 0 {
+		return ""
+	}
+
+	return fmt.Sprintf("HAVING %s ", strings.Join(conditions, " AND "))
 }
