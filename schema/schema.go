@@ -227,10 +227,9 @@ var allowedHavingField = graphql.NewEnum(graphql.EnumConfig{
 var aggregatedData = graphql.NewObject(graphql.ObjectConfig{
 	Name: "AggregatedData",
 	Fields: graphql.Fields{
-		"field":   &graphql.Field{Type: graphql.String},
-		"groupBy": &graphql.Field{Type: graphql.String},
-		"sum":     &graphql.Field{Type: graphql.String},
-		"avg":     &graphql.Field{Type: graphql.String},
-		"count":   &graphql.Field{Type: graphql.String},
+		"name":  &graphql.Field{Type: gString},
+		"sum":   &graphql.Field{Type: gFloat},
+		"avg":   &graphql.Field{Type: gFloat},
+		"count": &graphql.Field{Type: gInt},
 	},
 })

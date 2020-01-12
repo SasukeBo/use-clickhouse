@@ -2,8 +2,10 @@ package model
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/SasukeBo/use-clickhouse/database"
+	"log"
 	"reflect"
 	"strings"
 )
@@ -50,7 +52,8 @@ func SimpleQuery(filters []interface{}, fields []interface{}, limit, offset int)
 
 	rows, err = database.DB.Query(sql)
 	if err != nil {
-		return nil, err
+		log.Println(err)
+		return nil, errors.New("Query Data Failed")
 	}
 
 	total := 0
@@ -174,9 +177,32 @@ func AggregatedQuery(filters, havings []interface{}, groupBy, field string) (int
 		havingField,
 	)
 
-	fmt.Println(sql)
+	rows, err := database.DB.Query(sql)
+	if err != nil {
+		log.Println(err)
+		return nil, errors.New("Query Data Failed")
+	}
 
-	return nil, nil
+	type result struct {
+		Name  string
+		Sum   float64
+		Avg   float64
+		Count int
+	}
+
+	results := []result{}
+
+	for rows.Next() {
+		r := result{}
+
+		if err := rows.Scan(&r.Name, &r.Sum, &r.Avg, &r.Count); err != nil {
+			continue
+		}
+
+		results = append(results, r)
+	}
+
+	return results, nil
 }
 
 func parseHavingField(havings []interface{}) string {
