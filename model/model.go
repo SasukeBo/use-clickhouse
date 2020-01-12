@@ -153,22 +153,32 @@ func parseSelectField(fields []interface{}) string {
 }
 
 // AggregatedQuery _
-func AggregatedQuery(filters, havings []interface{}, groupBy, field string) (interface{}, error) {
+func AggregatedQuery(filters, havings []interface{}, groupBy, field string, limit, offset int) (interface{}, error) {
+	type result struct {
+		Name  string
+		Sum   float64
+		Avg   float64
+		Count int
+	}
+
+	response := struct {
+		Total int
+		List  []result
+	}{0, []result{}}
+
+	if groupBy == "" {
+		return response, nil
+	}
+
+	if field == "" {
+		return response, nil
+	}
+
 	whereField := parseWhereField(filters)
 	havingField := parseHavingField(havings)
 
-	sql := fmt.Sprintf(
-		`
-		SELECT
-			%s,
-			sum(%s) AS sum,
-			avg(%s) AS avg,
-			count() AS count
-		FROM sales
-		%s
-		GROUP BY %s
-		%s
-		`,
+	subSQL := fmt.Sprintf(
+		`SELECT %s, sum(%s) AS sum, avg(%s) AS avg, count() AS count FROM sales %s GROUP BY %s %s `,
 		groupBy,
 		field,
 		field,
@@ -177,17 +187,26 @@ func AggregatedQuery(filters, havings []interface{}, groupBy, field string) (int
 		havingField,
 	)
 
+	fmt.Println(subSQL)
+
+	sql := fmt.Sprintf(`SELECT count(*) FROM (%s) AS result`, subSQL)
 	rows, err := database.DB.Query(sql)
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New("Query Data Failed")
 	}
 
-	type result struct {
-		Name  string
-		Sum   float64
-		Avg   float64
-		Count int
+	total := 0
+
+	for rows.Next() {
+		rows.Scan(&total)
+	}
+
+	sql = fmt.Sprintf(`SELECT * FROM (%s) LIMIT %v OFFSET %v`, subSQL, limit, offset)
+	rows, err = database.DB.Query(sql)
+	if err != nil {
+		log.Println(err)
+		return nil, errors.New("Query Data Failed")
 	}
 
 	results := []result{}
@@ -202,7 +221,10 @@ func AggregatedQuery(filters, havings []interface{}, groupBy, field string) (int
 		results = append(results, r)
 	}
 
-	return results, nil
+	response.List = results
+	response.Total = total
+
+	return response, nil
 }
 
 func parseHavingField(havings []interface{}) string {

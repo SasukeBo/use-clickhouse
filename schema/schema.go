@@ -150,17 +150,21 @@ var sale = graphql.NewObject(graphql.ObjectConfig{
 })
 
 var aggregatedQuery = &graphql.Field{
-	Type: graphql.NewList(aggregatedData),
+	Type: aggregatedList,
 	Args: graphql.FieldConfigArgument{
-		"groupBy": arg(graphql.NewNonNull(allowedGroupByField), nil, "group by"),
-		"field":   arg(graphql.NewNonNull(allowedCalculateField), nil, "column to calculate, TotalCost | UnitsSold | UnitPrice | UnitCost | TotalRevenue | TotalCost | TotalProfit"),
+		"groupBy": arg(allowedGroupByField, "", "group by"),
+		"field":   arg(allowedCalculateField, "", "column to calculate, TotalCost | UnitsSold | UnitPrice | UnitCost | TotalRevenue | TotalCost | TotalProfit"),
 		"filters": arg(graphql.NewList(simpleQueryFilter), nil, "where filters"),
 		"havings": arg(graphql.NewList(aggregatedQueryHaving), nil, "having filters"),
+		"limit":   arg(gNInt, nil),
+		"offset":  arg(gInt, 0),
 	},
 	Description: "query aggregated data of field by filters, sum, avg and count",
 	Resolve: func(params graphql.ResolveParams) (interface{}, error) {
 		groupBy := params.Args["groupBy"].(string)
 		field := params.Args["field"].(string)
+		limit := params.Args["limit"].(int)
+		offset := params.Args["offset"].(int)
 		filters, ok := params.Args["filters"].([]interface{})
 		if !ok {
 			filters = []interface{}{}
@@ -170,7 +174,7 @@ var aggregatedQuery = &graphql.Field{
 			filters = []interface{}{}
 		}
 
-		return model.AggregatedQuery(filters, havings, groupBy, field)
+		return model.AggregatedQuery(filters, havings, groupBy, field, limit, offset)
 	},
 }
 
@@ -221,6 +225,14 @@ var allowedHavingField = graphql.NewEnum(graphql.EnumConfig{
 		"Sum":   &graphql.EnumValueConfig{Value: "sum"},
 		"Avg":   &graphql.EnumValueConfig{Value: "avg"},
 		"Count": &graphql.EnumValueConfig{Value: "count"},
+	},
+})
+
+var aggregatedList = graphql.NewObject(graphql.ObjectConfig{
+	Name: "AggregatedList",
+	Fields: graphql.Fields{
+		"total": &graphql.Field{Type: gInt},
+		"list":  &graphql.Field{Type: graphql.NewList(aggregatedData)},
 	},
 })
 
