@@ -8,7 +8,7 @@ import (
 	"github.com/ClickHouse/clickhouse-go"
 )
 
-func main() {
+func connectClickhouse() {
 	var host = "192.168.9.39"
 	var port = "9000"
 	var password = "Wb922149@...S"
