@@ -174,7 +174,7 @@ upstream backend {
 }
 
 upstream frontend {
-    server 127.0.0.1:8081;
+    server 127.0.0.1:8080;
 }
 
 server {

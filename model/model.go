@@ -16,7 +16,7 @@ type Sale struct {
 	SalesChannel  string  `column:"sales_channel"`
 	OrderPriority string  `column:"order_priority"`
 	OrderID       string  `column:"order_id"`
-	UnitsSold     int     `column:"units_cold"`
+	UnitsSold     uint16  `column:"units_sold"`
 	UnitPrice     float32 `column:"unit_price"`
 	UnitCost      float32 `column:"unit_cost"`
 	TotalRevenue  float32 `column:"total_revenue"`
@@ -45,7 +45,25 @@ func SimpleQuery(filters []interface{}, fields []interface{}, limit, offset int)
 
 	sales := scanValue(rows, fields)
 
-	return sales, nil
+	sql = fmt.Sprintf("SELECT count() FROM sales %s", whereField)
+
+	rows, err = database.DB.Query(sql)
+	if err != nil {
+		return nil, err
+	}
+
+	total := 0
+
+	for rows.Next() {
+		if err := rows.Scan(&total); err != nil {
+			continue
+		}
+	}
+
+	return struct {
+		Total int
+		Sales []Sale
+	}{total, sales}, nil
 }
 
 func scanValue(rows *sql.Rows, fields []interface{}) []Sale {
@@ -99,7 +117,7 @@ func parseWhereField(filters []interface{}) string {
 		fieldName, ok := rts.FieldByName(filter["field"].(string))
 
 		if ok {
-			conditions = append(conditions, fmt.Sprintf("%s LIKE '%%%v%%'", fieldName.Tag.Get("column"), filter["value"]))
+			conditions = append(conditions, fmt.Sprintf("position(lcase(%s), lcase('%v')) > 0", fieldName.Tag.Get("column"), filter["value"]))
 		}
 	}
 
@@ -107,7 +125,7 @@ func parseWhereField(filters []interface{}) string {
 		return ""
 	}
 
-	return fmt.Sprintf("WHERE %s ", strings.Join(conditions, ", "))
+	return fmt.Sprintf("WHERE %s ", strings.Join(conditions, " and "))
 }
 
 func parseSelectField(fields []interface{}) string {

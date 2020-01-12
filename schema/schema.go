@@ -1,6 +1,7 @@
 package schema
 
 import (
+	// "fmt"
 	"github.com/graphql-go/graphql"
 	"log"
 
@@ -61,7 +62,7 @@ var ping = &graphql.Field{
 }
 
 var simpleQuery = &graphql.Field{
-	Type: graphql.NewList(sale),
+	Type: saleList,
 	Args: graphql.FieldConfigArgument{
 		"limit":   arg(gNInt, nil, "max return rows"),
 		"offset":  arg(gInt, 0, "query offset"),
@@ -70,8 +71,14 @@ var simpleQuery = &graphql.Field{
 	},
 	Description: "query simple data by filters, and select fields",
 	Resolve: func(params graphql.ResolveParams) (interface{}, error) {
-		fields := params.Args["fields"].([]interface{})
-		filters := params.Args["filters"].([]interface{})
+		fields, ok := params.Args["fields"].([]interface{})
+		if !ok {
+			fields = []interface{}{}
+		}
+		filters, ok := params.Args["filters"].([]interface{})
+		if !ok {
+			filters = []interface{}{}
+		}
 		limit := params.Args["limit"].(int)
 		offset := params.Args["offset"].(int)
 		return model.SimpleQuery(filters, fields, limit, offset)
@@ -83,6 +90,14 @@ var simpleQueryFilter = graphql.NewInputObject(graphql.InputObjectConfig{
 	Fields: graphql.InputObjectConfigFieldMap{
 		"field": &graphql.InputObjectFieldConfig{Type: gString},
 		"value": &graphql.InputObjectFieldConfig{Type: gString},
+	},
+})
+
+var saleList = graphql.NewObject(graphql.ObjectConfig{
+	Name: "SaleList",
+	Fields: graphql.Fields{
+		"sales": &graphql.Field{Type: graphql.NewList(sale), Description: "list of sale"},
+		"total": &graphql.Field{Type: gInt, Description: "count of total record"},
 	},
 })
 
